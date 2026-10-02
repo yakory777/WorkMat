@@ -6,7 +6,8 @@
 
 *Берите, пользуйтесь, учитесь и создавайте своё!*
  
-![Открыто] <img src="https://images.meme-arsenal.com/c0526e23a03913f76db28e8410ea8ac8.jpg)" width="400">
+
+![Открыто](https://images.meme-arsenal.com/c0526e23a03913f76db28e8410ea8ac8.jpg)
 
 </div>
 

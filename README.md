@@ -6,9 +6,7 @@
 
 *Берите, пользуйтесь, учитесь и создавайте своё!*
 
-![3D-моделирование](https://i.ytimg.com/vi/6I9xv05a80o/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AHIB4AC0AWKAgwIABABGH8gOCg4MA8=&rs=AOn4CLBOxtJnErPlmitGWYe5wkjWHGanLQ) width="30%">
-![Промдизайн](https://www.anekdot.ru/i/caricatures/normal/23/2/25/1677346937.jpg) width="30%">
-![Открыто](https://images.meme-arsenal.com/c0526e23a03913f76db28e8410ea8ac8.jpg) width="30%">
+![Открыто](https://images.meme-arsenal.com/c0526e23a03913f76db28e8410ea8ac8.jpg) 
 
 </div>
 

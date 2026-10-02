@@ -6,9 +6,9 @@
 
 *Берите, пользуйтесь, учитесь и создавайте своё!*
 
-![3D-моделирование](https://i.ytimg.com/vi/6I9xv05a80o/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AHIB4AC0AWKAgwIABABGH8gOCg4MA8=&rs=AOn4CLBOxtJnErPlmitGWYe5wkjWHGanLQ)
-![Промдизайн](https://www.anekdot.ru/i/caricatures/normal/23/2/25/1677346937.jpg)
-![Открыто](https://images.meme-arsenal.com/c0526e23a03913f76db28e8410ea8ac8.jpg)
+![3D-моделирование](https://i.ytimg.com/vi/6I9xv05a80o/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AHIB4AC0AWKAgwIABABGH8gOCg4MA8=&rs=AOn4CLBOxtJnErPlmitGWYe5wkjWHGanLQ) width="30%">
+![Промдизайн](https://www.anekdot.ru/i/caricatures/normal/23/2/25/1677346937.jpg) width="30%">
+![Открыто](https://images.meme-arsenal.com/c0526e23a03913f76db28e8410ea8ac8.jpg) width="30%">
 
 </div>
 
@@ -73,7 +73,7 @@
 **Для тех, кто знаком с Git:**
 
 ```bash
-git clone https://github.com/ВАШ_НИК/НАЗВАНИЕ_РЕПОЗИТОРИЯ.git
+git clone https://github.com/yakory777/WorkMat
 ```
 
 А чтобы получить свежие материалы позже:
@@ -90,20 +90,12 @@ git pull
 |---|---|
 | **КОМПАС-3D** | Твердотельное моделирование и чертежи |
 | **Autodesk Fusion** | Параметрическое моделирование и сборки |
-| **Blender** | Свободное моделирование, визуализация, рендер |
-| **Tinkercad** | Первые шаги в 3D прямо в браузере |
-
-> ✏️ *Список можно дополнять — укажите здесь программы, которые используете вы.*
+| **KiCad** | Платы, схемотехника, трассировка, топология |
+| **Bambu Studio** | Нарезаем, печатаем, познаем тонкости настройки оборудования |
 
 ---
 
-## 🧭 С чего начать новичку
-
-1. 🟢 Загляните в `3d-modeling/01-intro` — там основы и первая модель.
-2. 🟡 Пройдите задания из `assignments/` начального уровня.
-3. 🔴 Попробуйте свой мини-проект — идеи есть в `industrial-design/`.
-
-Не бойтесь ошибаться: каждая неудачная модель — это шаг к удачной 🙂
+## Не бойтесь ошибаться: каждая неудачная модель — это шаг к удачной 🙂
 
 ---
 

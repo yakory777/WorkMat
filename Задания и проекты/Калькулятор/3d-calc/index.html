@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Калькулятор стоимости печати</title>
+  <style>
+    :root {
+      --bg-top: #f7f0e5;
+      --bg-bottom: #d8ebe5;
+      --ink: #122033;
+      --muted: #5f6f80;
+      --card: rgba(255, 255, 255, 0.78);
+      --card-muted: rgba(255, 255, 255, 0.58);
+      --line: rgba(18, 32, 51, 0.09);
+      --accent: #0d7c74;
+      --accent-soft: #d8f0ec;
+      --accent-warm: #e7742f;
+      --shadow: 0 22px 55px rgba(24, 37, 56, 0.14);
+      --hero-shadow: 0 28px 64px rgba(8, 36, 52, 0.26);
+      --summary-bg: linear-gradient(160deg, rgba(14, 30, 44, 0.97), rgba(11, 88, 90, 0.94));
+      --radius-xl: 32px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI Variable Display", "Bahnschrift", "Trebuchet MS", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(231, 116, 47, 0.18), transparent 25%),
+        radial-gradient(circle at bottom right, rgba(13, 124, 116, 0.22), transparent 28%),
+        linear-gradient(180deg, var(--bg-top), var(--bg-bottom));
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.28) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.24) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: radial-gradient(circle at center, black 55%, transparent 100%);
+      opacity: 0.35;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 44px 20px 64px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 34px;
+      border-radius: 38px;
+      color: #f8fbfc;
+      background:
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 24%),
+        linear-gradient(130deg, rgba(18, 52, 82, 0.96), rgba(13, 124, 116, 0.9) 56%, rgba(231, 116, 47, 0.82));
+      box-shadow: var(--hero-shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      right: -40px;
+      top: -40px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.34), transparent 60%);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: inherit;
+      opacity: 0.88;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 28px;
+      height: 2px;
+      border-radius: 999px;
+      background: currentColor;
+      opacity: 0.7;
+    }
+
+    .hero h1 {
+      margin: 0;
+      max-width: 720px;
+      font-size: clamp(2.2rem, 4.8vw, 4.2rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 18px 0 0;
+      max-width: 720px;
+      font-size: 1.02rem;
+      line-height: 1.7;
+      color: rgba(248, 251, 252, 0.88);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .meta-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      font-size: 0.92rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.24fr) minmax(320px, 410px);
+      gap: 24px;
+      margin-top: 26px;
+      align-items: start;
+    }
+
+    .cards {
+      display: grid;
+      gap: 18px;
+    }
+
+    .cost-card {
+      padding: 24px;
+      border-radius: var(--radius-xl);
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.54);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      transition: transform 180ms ease, box-shadow 180ms ease, opacity 180ms ease, background 180ms ease;
+    }
+
+    .cost-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 26px 58px rgba(24, 37, 56, 0.17);
+    }
+
+    .cost-card.is-inactive {
+      background: var(--card-muted);
+      opacity: 0.65;
+      box-shadow: 0 14px 30px rgba(24, 37, 56, 0.08);
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    .card-head h2 {
+      margin: 0;
+      font-size: 1.4rem;
+      letter-spacing: -0.03em;
+    }
+
+    .card-head p {
+      margin: 10px 0 0;
+      max-width: 620px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.96rem;
+    }
+
+    .switch {
+      position: relative;
+      flex-shrink: 0;
+      width: 64px;
+      height: 38px;
+    }
+
+    .switch input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      margin: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: rgba(120, 135, 156, 0.34);
+      transition: background 180ms ease;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      left: 4px;
+      top: 4px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 10px 22px rgba(17, 24, 39, 0.2);
+      transition: transform 180ms ease;
+    }
+
+    .switch input:checked + .slider {
+      background: linear-gradient(120deg, var(--accent), var(--accent-warm));
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(26px);
+    }
+
+    .fields {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field span {
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+
+    .field input {
+      width: 100%;
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      background: rgba(244, 247, 251, 0.92);
+      color: var(--ink);
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+    }
+
+    .field input:focus {
+      border-color: rgba(13, 124, 116, 0.28);
+      background: #ffffff;
+      box-shadow: 0 0 0 5px rgba(13, 124, 116, 0.12);
+    }
+
+    .field input::-webkit-outer-spin-button,
+    .field input::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    .field input[type="number"] {
+      appearance: textfield;
+      -moz-appearance: textfield;
+    }
+
+    .card-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+
+    .card-note {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .card-value {
+      text-align: right;
+    }
+
+    .card-value span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.84rem;
+      margin-bottom: 6px;
+    }
+
+    .card-value strong {
+      font-size: 1.18rem;
+      letter-spacing: -0.02em;
+    }
+
+    .summary {
+      position: sticky;
+      top: 24px;
+      padding: 26px;
+      border-radius: 34px;
+      color: #f7fafc;
+      background: var(--summary-bg);
+      box-shadow: var(--hero-shadow);
+      overflow: hidden;
+    }
+
+    .summary::after {
+      content: "";
+      position: absolute;
+      right: -30px;
+      bottom: -30px;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(231, 116, 47, 0.2), transparent 70%);
+      pointer-events: none;
+    }
+
+    .summary h2 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: -0.03em;
+    }
+
+    .summary p {
+      margin: 10px 0 0;
+      color: rgba(247, 250, 252, 0.78);
+      line-height: 1.65;
+      font-size: 0.95rem;
+    }
+
+    .total-box {
+      margin-top: 24px;
+      padding: 22px;
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(14px);
+    }
+
+    .total-box span {
+      display: block;
+      color: rgba(247, 250, 252, 0.76);
+      font-size: 0.9rem;
+      margin-bottom: 8px;
+    }
+
+    .total-box strong {
+      display: block;
+      font-size: clamp(2.2rem, 5vw, 3.2rem);
+      line-height: 1;
+      letter-spacing: -0.05em;
+    }
+
+    .total-box small {
+      display: block;
+      margin-top: 10px;
+      color: rgba(247, 250, 252, 0.72);
+      font-size: 0.88rem;
+    }
+
+    .summary-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .stat span {
+      display: block;
+      color: rgba(247, 250, 252, 0.72);
+      font-size: 0.82rem;
+      margin-bottom: 8px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.05rem;
+      letter-spacing: -0.02em;
+    }
+
+    .panel {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .panel h3 {
+      margin: 0;
+      font-size: 1.04rem;
+      letter-spacing: -0.02em;
+    }
+
+    .ghost-button {
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.06);
+      color: #ffffff;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+
+    .ghost-button:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .breakdown-list {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .breakdown-row {
+      padding: 14px 14px 12px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: opacity 160ms ease;
+    }
+
+    .breakdown-row.is-disabled {
+      opacity: 0.52;
+    }
+
+    .breakdown-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-size: 0.94rem;
+    }
+
+    .breakdown-line strong {
+      font-size: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .breakdown-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 9px;
+      font-size: 0.8rem;
+      color: rgba(247, 250, 252, 0.68);
+    }
+
+    .bar {
+      width: 100%;
+      height: 8px;
+      margin-top: 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #7ce0d7, #f2a36e);
+    }
+
+    .formula {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .formula h3 {
+      margin: 0 0 10px;
+      font-size: 1rem;
+    }
+
+    .formula p {
+      margin: 0;
+      font-size: 0.92rem;
+      color: rgba(247, 250, 252, 0.76);
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .summary {
+        position: static;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        padding: 20px 14px 42px;
+      }
+
+      .hero,
+      .cost-card,
+      .summary {
+        border-radius: 28px;
+      }
+
+      .hero {
+        padding: 24px;
+      }
+
+      .card-head,
+      .panel-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .switch {
+        width: 60px;
+        height: 36px;
+      }
+
+      .summary-stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Калькулятор стоимости печати с гибкими параметрами</h1>
+      <p>
+        Включайте только нужные статьи затрат, вводите значения вручную и сразу получайте итоговую стоимость.
+        Процент брака начисляется поверх всех активных затрат, поэтому расчёт остаётся прозрачным и удобным.
+      </p>
+      <div class="hero-meta">
+        <div class="meta-pill">Материал</div>
+        <div class="meta-pill">Время печати</div>
+        <div class="meta-pill">Работа мастера</div>
+        <div class="meta-pill">Брак</div>
+        <div class="meta-pill">Срочность</div>
+        <div class="meta-pill">Амортизация</div>
+        <div class="meta-pill">Электроэнергия</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="cards">
+        <article class="cost-card" data-section="material">
+          <div class="card-head">
+            <div>
+              <span class="eyebrow" style="color: var(--accent);">Прямые затраты</span>
+              <h2>Материал</h2>
+              <p>Стоимость материала считается от цены катушки: укажите стоимость катушки и расход материала в граммах.</p>
+            </div>
+            <label class="switch" aria-label="Включить материал">
+              <input type="checkbox" data-toggle="material" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="fields">
+            <label class="field">
+              <span>Стоимость катушки, ₽</span>
+              <input id="materialSpoolCost" type="number" min="0" step="10" value="1200">
+            </label>
+            <label class="field">
+              <span>Расход материала, г</span>
+              <input id="materialWeightGrams" type="number" min="0" step="1" value="180">
+            </label>
+          </div>
+          <div class="card-foot">
+            <div class="card-note">Формула: стоимость катушки ÷ 1000 × расход в граммах. Расчёт рассчитан на стандартную катушку 1 кг.</div>
+            <div class="card-value">
+              <span>К учёту</span>
+              <strong id="materialPreview">0 ₽</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="cost-card" data-section="printTime">
+          <div class="card-head">
+            <div>
+              <span class="eyebrow" style="color: var(--accent);">Машинное время</span>
+              <h2>Время печати</h2>
+              <p>Стоимость времени печати считается автоматически: часы работы принтера умножаются на ставку за час.</p>
+            </div>
+            <label class="switch" aria-label="Включить время печати">
+              <input type="checkbox" data-toggle="printTime" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="fields">
+            <label class="field">
+              <span>Время печати, ч</span>
+              <input id="printHours" type="number" min="0" step="0.1" value="6">
+            </label>
+            <label class="field">
+              <span>Ставка за час, ₽</span>
+              <input id="printRate" type="number" min="0" step="10" value="180">
+            </label>
+          </div>
+          <div class="card-foot">
+            <div class="card-note">Формула: время печати × ставка за час.</div>
+            <div class="card-value">
+              <span>К учёту</span>
+              <strong id="printTimePreview">0 ₽</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="cost-card" data-section="labor">
+          <div class="card-head">
+            <div>
+              <span class="eyebrow" style="color: var(--accent);">Ручная работа</span>
+              <h2>Работа мастера</h2>
+              <p>Укажите затраты времени мастера и его часовую ставку, чтобы получить итоговую стоимость работ.</p>
+            </div>
+            <label class="switch" aria-label="Включить работу мастера">
+              <input type="checkbox" data-toggle="labor" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="fields">
+            <label class="field">
+              <span>Часы мастера, ч</span>
+              <input id="laborHours" type="number" min="0" step="0.1" value="1.5">
+            </label>
+            <label class="field">
+              <span>Ставка мастера, ₽</span>
+              <input id="laborRate" type="number" min="0" step="50" value="700">
+            </label>
+          </div>
+          <div class="card-foot">
+            <div class="card-note">Формула: часы мастера × ставка мастера.</div>
+            <div class="card-value">
+              <span>К учёту</span>
+              <strong id="laborPreview">0 ₽</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="cost-card" data-section="reject">
+          <div class="card-head">
+            <div>
+              <span class="eyebrow" style="color: var(--accent-warm);">Риск и запас</span>
+              <h2>Запас на брак</h2>
+              <p>Процент брака начисляется на сумму всех активных затрат и помогает учесть возможные переделки.</p>
+            </div>
+            <label class="switch" aria-label="Включить запас на брак">
+              <input type="checkbox" data-toggle="reject" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="fields">
+            <label class="field">
+              <span>Процент брака, %</span>
+              <input id="rejectPercent" type="number" min="0" step="0.1" value="7">
+            </label>
+          </div>
+          <div class="card-foot">
+            <div class="card-note">Начисляется только поверх активных статей без двойного учёта.</div>
+            <div class="card-value">
+              <span>Добавка</span>
+              <strong id="rejectPreview">0 ₽</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="cost-card" data-section="depreciation">
+          <div class="card-head">
+            <div>
+              <span class="eyebrow" style="color: var(--accent);">Парк оборудования</span>
+              <h2>Амортизация</h2>
+              <p>Введите сумму износа оборудования, которую хотите заложить в конкретный заказ.</p>
+            </div>
+            <label class="switch" aria-label="Включить амортизацию">
+              <input type="checkbox" data-toggle="depreciation" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="fields">
+            <label class="field">
+              <span>Амортизация, ₽</span>
+              <input id="depreciationCost" type="number" min="0" step="10" value="250">
+            </label>
+          </div>
+          <div class="card-foot">
+            <div class="card-note">Можно учитывать как постоянную доплату на заказ или временно отключать.</div>
+            <div class="card-value">
+              <span>К учёту</span>
+              <strong id="depreciationPreview">0 ₽</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="cost-card" data-section="urgency">
+          <div class="card-head">
+            <div>
+              <span class="eyebrow" style="color: var(--accent-warm);">Экспресс-заказ</span>
+              <h2>Срочность</h2>
+              <p>Добавьте отдельную наценку за срочное выполнение заказа, если работа должна быть запущена вне очереди.</p>
+            </div>
+            <label class="switch" aria-label="Включить срочность">
+              <input type="checkbox" data-toggle="urgency">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="fields">
+            <label class="field">
+              <span>Наценка за срочность, %</span>
+              <input id="urgencyPercent" type="number" min="0" step="0.1" value="20">
+            </label>
+          </div>
+          <div class="card-foot">
+            <div class="card-note">Считается как дополнительный процент от базовой себестоимости без двойного начисления.</div>
+            <div class="card-value">
+              <span>Добавка</span>
+              <strong id="urgencyPreview">0 ₽</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="cost-card" data-section="electricity">
+          <div class="card-head">
+            <div>
+              <span class="eyebrow" style="color: var(--accent);">Коммунальные расходы</span>
+              <h2>Электроэнергия</h2>
+              <p>Внесите стоимость электроэнергии вручную, если она считается отдельно от стоимости машинного времени.</p>
+            </div>
+            <label class="switch" aria-label="Включить электроэнергию">
+              <input type="checkbox" data-toggle="electricity" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+          <div class="fields">
+            <label class="field">
+              <span>Электроэнергия, ₽</span>
+              <input id="electricityCost" type="number" min="0" step="10" value="90">
+            </label>
+          </div>
+          <div class="card-foot">
+            <div class="card-note">Подходит для ручного ввода фактических расходов по счётчику или норме.</div>
+            <div class="card-value">
+              <span>К учёту</span>
+              <strong id="electricityPreview">0 ₽</strong>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <aside class="summary">
+        <span class="eyebrow">Итог расчёта</span>
+        <h2>Стоимость заказа</h2>
+        <p>Правая панель показывает базовую себестоимость, добавки на брак и срочность, а также финальную сумму.</p>
+
+        <div class="total-box">
+          <span>Итоговая стоимость</span>
+          <strong id="finalTotal">0 ₽</strong>
+          <small id="totalMeta">0 активных параметров</small>
+        </div>
+
+        <div class="summary-stats">
+          <div class="stat">
+            <span>Базовая себестоимость</span>
+            <strong id="baseTotal">0 ₽</strong>
+          </div>
+          <div class="stat">
+            <span>Запас на брак</span>
+            <strong id="rejectTotal">0 ₽</strong>
+          </div>
+          <div class="stat">
+            <span>Срочность</span>
+            <strong id="urgencyTotal">0 ₽</strong>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Разбивка по статьям</h3>
+            <button id="resetButton" class="ghost-button" type="button">Сбросить</button>
+          </div>
+          <div id="breakdownList" class="breakdown-list"></div>
+        </div>
+
+        <div class="formula">
+          <h3>Формула</h3>
+          <p>Итог = сумма включённых затрат + процент брака от этой суммы + процент срочности от этой суммы.</p>
+        </div>
+      </aside>
+    </main>
+
+    <p class="footer-note">
+      При необходимости можно поменять стартовые значения прямо в коде, но интерфейс уже готов для ручного ввода при открытии файла в браузере.
+    </p>
+  </div>
+
+  <script>
+    const defaults = {
+      materialSpoolCost: 1200,
+      materialWeightGrams: 180,
+      printHours: 6,
+      printRate: 180,
+      laborHours: 1.5,
+      laborRate: 700,
+      rejectPercent: 7,
+      depreciationCost: 250,
+      urgencyPercent: 20,
+      electricityCost: 90,
+      toggles: {
+        material: true,
+        printTime: true,
+        labor: true,
+        reject: true,
+        depreciation: true,
+        urgency: false,
+        electricity: true
+      }
+    };
+
+    const currency = new Intl.NumberFormat("ru-RU", {
+      style: "currency",
+      currency: "RUB",
+      maximumFractionDigits: 2
+    });
+
+    const sections = {
+      material: {
+        title: "Материал",
+        previewId: "materialPreview",
+        getValue: () => (getNumber("materialSpoolCost") / 1000) * getNumber("materialWeightGrams"),
+        meta: () => `${formatNumber(getNumber("materialWeightGrams"))} г из катушки ${currency.format(getNumber("materialSpoolCost"))}`
+      },
+      printTime: {
+        title: "Время печати",
+        previewId: "printTimePreview",
+        getValue: () => getNumber("printHours") * getNumber("printRate"),
+        meta: () => `${formatNumber(getNumber("printHours"))} ч × ${currency.format(getNumber("printRate"))}`
+      },
+      labor: {
+        title: "Работа мастера",
+        previewId: "laborPreview",
+        getValue: () => getNumber("laborHours") * getNumber("laborRate"),
+        meta: () => `${formatNumber(getNumber("laborHours"))} ч × ${currency.format(getNumber("laborRate"))}`
+      },
+      reject: {
+        title: "Запас на брак",
+        previewId: "rejectPreview",
+        getValue: (subtotal) => subtotal * getNumber("rejectPercent") / 100,
+        meta: () => `${formatNumber(getNumber("rejectPercent"))}% от себестоимости`
+      },
+      depreciation: {
+        title: "Амортизация",
+        previewId: "depreciationPreview",
+        getValue: () => getNumber("depreciationCost"),
+        meta: () => "Парк оборудования"
+      },
+      urgency: {
+        title: "Срочность",
+        previewId: "urgencyPreview",
+        getValue: (subtotal) => subtotal * getNumber("urgencyPercent") / 100,
+        meta: () => `${formatNumber(getNumber("urgencyPercent"))}% от себестоимости`
+      },
+      electricity: {
+        title: "Электроэнергия",
+        previewId: "electricityPreview",
+        getValue: () => getNumber("electricityCost"),
+        meta: () => "Коммунальные расходы"
+      }
+    };
+
+    const baseCostKeys = ["material", "printTime", "labor", "depreciation", "electricity"];
+    const allInputs = Array.from(document.querySelectorAll("input"));
+    const breakdownList = document.getElementById("breakdownList");
+
+    function getNumber(id) {
+      const element = document.getElementById(id);
+      const value = Number.parseFloat(String(element.value).replace(",", "."));
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    }
+
+    function formatNumber(value) {
+      return new Intl.NumberFormat("ru-RU", {
+        minimumFractionDigits: value % 1 === 0 ? 0 : 1,
+        maximumFractionDigits: 2
+      }).format(value);
+    }
+
+    function isEnabled(key) {
+      const toggle = document.querySelector(`[data-toggle="${key}"]`);
+      return Boolean(toggle && toggle.checked);
+    }
+
+    function updateCardStates() {
+      Object.keys(sections).forEach((key) => {
+        const card = document.querySelector(`[data-section="${key}"]`);
+        if (!card) {
+          return;
+        }
+        card.classList.toggle("is-inactive", !isEnabled(key));
+      });
+    }
+
+    function renderBreakdown(items, total) {
+      breakdownList.innerHTML = items.map((item) => {
+        const width = total > 0 ? Math.max((item.value / total) * 100, 0) : 0;
+        return `
+          <div class="breakdown-row ${item.enabled ? "" : "is-disabled"}">
+            <div class="breakdown-line">
+              <span>${item.title}</span>
+              <strong>${currency.format(item.enabled ? item.value : 0)}</strong>
+            </div>
+            <div class="bar">
+              <span style="width: ${width.toFixed(2)}%;"></span>
+            </div>
+            <div class="breakdown-meta">
+              <span>${item.meta}</span>
+              <span>${item.enabled ? "включено" : "выключено"}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function calculate() {
+      updateCardStates();
+
+      const subtotal = getBaseSubtotal();
+      const baseItems = baseCostKeys.map((key) => {
+        const enabled = isEnabled(key);
+        const rawValue = sections[key].getValue();
+        const effectiveValue = enabled ? rawValue : 0;
+
+        document.getElementById(sections[key].previewId).textContent = currency.format(effectiveValue);
+
+        return {
+          key,
+          title: sections[key].title,
+          meta: sections[key].meta(),
+          value: effectiveValue,
+          enabled
+        };
+      });
+
+      const rejectEnabled = isEnabled("reject");
+      const urgencyEnabled = isEnabled("urgency");
+      const rejectValue = rejectEnabled ? sections.reject.getValue(subtotal) : 0;
+      const urgencyValue = urgencyEnabled ? sections.urgency.getValue(subtotal) : 0;
+      const urgencyItem = {
+        key: "urgency",
+        title: sections.urgency.title,
+        meta: sections.urgency.meta(),
+        value: urgencyValue,
+        enabled: urgencyEnabled
+      };
+      const total = subtotal + rejectValue + urgencyValue;
+      const activeCount = baseItems.filter((item) => item.enabled).length + (rejectEnabled ? 1 : 0) + (urgencyEnabled ? 1 : 0);
+
+      document.getElementById("rejectPreview").textContent = currency.format(rejectValue);
+      document.getElementById("urgencyPreview").textContent = currency.format(urgencyValue);
+      document.getElementById("baseTotal").textContent = currency.format(subtotal);
+      document.getElementById("rejectTotal").textContent = currency.format(rejectValue);
+      document.getElementById("urgencyTotal").textContent = currency.format(urgencyValue);
+      document.getElementById("finalTotal").textContent = currency.format(total);
+      document.getElementById("totalMeta").textContent = `${activeCount} активных параметров из 7`;
+
+      renderBreakdown([
+        ...baseItems,
+        {
+          key: "reject",
+          title: sections.reject.title,
+          meta: sections.reject.meta(),
+          value: rejectValue,
+          enabled: rejectEnabled
+        },
+        urgencyItem
+      ], total);
+    }
+
+    function getBaseSubtotal() {
+      return ["material", "printTime", "labor", "depreciation", "electricity"].reduce((sum, key) => {
+        if (!isEnabled(key)) {
+          return sum;
+        }
+        return sum + sections[key].getValue();
+      }, 0);
+    }
+
+    function resetCalculator() {
+      document.getElementById("materialSpoolCost").value = defaults.materialSpoolCost;
+      document.getElementById("materialWeightGrams").value = defaults.materialWeightGrams;
+      document.getElementById("printHours").value = defaults.printHours;
+      document.getElementById("printRate").value = defaults.printRate;
+      document.getElementById("laborHours").value = defaults.laborHours;
+      document.getElementById("laborRate").value = defaults.laborRate;
+      document.getElementById("rejectPercent").value = defaults.rejectPercent;
+      document.getElementById("depreciationCost").value = defaults.depreciationCost;
+      document.getElementById("urgencyPercent").value = defaults.urgencyPercent;
+      document.getElementById("electricityCost").value = defaults.electricityCost;
+
+      Object.entries(defaults.toggles).forEach(([key, value]) => {
+        const toggle = document.querySelector(`[data-toggle="${key}"]`);
+        if (toggle) {
+          toggle.checked = value;
+        }
+      });
+
+      calculate();
+    }
+
+    allInputs.forEach((input) => {
+      input.addEventListener("input", calculate);
+      input.addEventListener("change", calculate);
+    });
+
+    document.getElementById("resetButton").addEventListener("click", resetCalculator);
+
+    calculate();
+  </script>
+</body>
+</html>
